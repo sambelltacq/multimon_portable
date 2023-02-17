@@ -1,0 +1,32 @@
+{
+    "lighthouses": [
+      "acq2006_015",
+      "acq2106_133",
+      "acq1001_084",
+      "acq2006_014",
+      "acq2006_015",
+      "acq1001_074",
+      "acq1001_084"
+    ],
+    "tty_servers": [
+      "rpi-001",
+      "rpi-003",
+      "rpi-004",
+      "rpi-005",
+      "rpi-006",
+      "rpi-007",
+      "rpi-008",
+      "rpi-009",
+      "rpi-010",
+      "rpi-011",
+      "rpi-012",
+      "rpi-013",
+      "rpi-014",
+      "neon",
+      "eorsa",
+      "eigg",
+      "wiay"
+    ],
+    "update_rate": 1,
+    "web_port": 5000
+}
