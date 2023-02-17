@@ -1,0 +1,377 @@
+<!doctype html>
+<html>
+<head>
+    <title>Multimon Portable</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="samtest.js"></script>
+</head>
+<body>
+    <h1>Multimon Portable</h1>
+    <table id="table1">
+    </table>
+    <script>
+    </script>
+</body>
+<style>
+body {
+    background-color: grey;
+    font-family: "Courier New", Courier, monospace;
+}
+.dataRow{
+    background-color: green;
+}
+.dataRow:nth-child(2n){
+    background-color: blue;
+}
+#ip{
+    background-color: yellow;
+}
+#cstate{
+    background-color: whitesmoke;
+}
+.pretab {
+	border-spacing: 0;
+	border-collapse: collapse;
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+}
+.vchanged { color:blue; }
+
+pre.regular { color:blue; font-family: "Courier New", Courier, monospace; }
+
+.tblocks {
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+td.tblock_cooked {
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color:  blue;
+}
+td.tblock_shared {
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: green;
+}
+td.tblock_raw {
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color: red;
+}
+td.tblock_empty {
+	padding-left: 10px;
+	padding-right: 10px;
+	background-color:  grey;
+}
+div.gloss_detail
+{
+	background-color:yellow;
+	border: 2px solid black;
+	margin: 20px 4px 20px 4px;
+	padding: 5px;
+}
+
+a.gloss, a.gloss:link, a.gloss:visited {
+	color: black;
+	font-style: italic;
+}
+
+a.dtacq {
+	color: black;
+	font-weight: bold;
+}
+
+.vanilla-link {
+	color:blue;
+}
+
+ul {
+	list-style-image: url(images/d-tacq-icon-small.gif);
+}
+#dtacqlogo {
+	border-color: blue;
+	margin-left: 10px
+}
+
+td.footer-valid {
+	border-style: none;
+	text-align: right;
+	padding-left: 140px;
+}
+
+img {
+	border: none;
+}
+
+.tblocks {
+	border: 2px solid black;
+	/* margin: 20px 20px 20px 20px; */
+	padding: 2px;
+}
+table.REMpg-page-table
+{
+	border-collapse: collapse;
+	border-spacing: 10px;
+	empty-cells: hide;
+}
+
+td.REMpg-page-td-left
+{
+	width: 20%;
+	vertical-align: top;
+	border: none;
+	border-right: medium solid #ddd;
+	border-left: medium solid #ddd;
+	background-color: white;
+	color: black;
+	padding: 10px;
+}
+
+td.REMpg-page-td-right
+{
+	width: 80%;
+	vertical-align: top;
+	border: none;
+	border-right: medium solid #ddd;
+	background-color: white;
+	color: black;
+	padding: 10px;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+/* Spacer used within page layouts */
+div.REMpg-div
+{
+	margin-top: 10px;
+	margin-right: 0px;
+	margin-bottom: 0px;
+	margin-left: 0px;
+	padding: 0px 0px 0px 0px;
+}
+
+/* Style for page images in left column */
+img.REMpg-img
+{
+	width: 200px;
+	height: 135px;
+	float: left;
+	padding: 0px 0px 0px 0px;
+	margin-top: 5px;
+}
+
+td.REMpg-img-p
+{
+	color: black;
+}
+
+/* REMkey=title class */
+h1.REMpg-top-heading
+{
+	background-color: white;
+  	font-family: Arial, Helvetica, sans-serif;
+	color: black;
+	font-weight: bold;
+	font-size: large;
+	vertical-align: middle;
+	text-align: center;
+}
+
+/* REMkey=heading class */
+h1.REMpg-heading
+{
+	background-color: white;
+  	font-family: Arial, Helvetica, sans-serif;
+	color: black;
+	font-weight: bold;
+	font-size: large;
+	vertical-align: middle;
+	text-align: center;
+}
+
+/* REMkey=paragraph class */
+p.REMpg-ptext
+{
+	color: black;
+}
+
+/* REMkey=table class */
+table.REMpg-table
+{
+	border: medium solid blue;
+	border-collapse: collapse;
+	empty-cells: show;
+}
+
+td.REMpg-tdH
+{
+	border: thin solid gray;
+	background-color: white;
+	color: black;
+	font-weight: bold;
+	vertical-align: middle;
+	text-align: center;
+	padding: 5px 5px 5px 5px;
+}
+
+td.REMpg-td
+{
+	border: thin solid gray;
+  	font-family: Courier, sans-serif;
+	color: black;
+	vertical-align: middle;
+	text-align: right;
+	padding: 5px 5px 5px 5px;
+}
+
+td.REMpg-td-idle
+{
+	border: thin solid gray;
+	color: black;
+	background-color: white;
+	color: black;
+	vertical-align: middle;
+	text-align: left;
+	padding: 5px 10px 5px 5px;
+}
+
+/* REMkey=list class */
+ul.REMpg-ul
+{
+	vertical-align: top;
+}
+
+li.REMpg-li
+{
+	color: black;
+	margin-top: 0px;
+	padding-top: 0px;
+}
+p {
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+	font-weight: normal;
+	color: black;
+}
+
+p.important {
+	color: red;
+}
+
+table, th, td {
+	border: none;
+}
+
+th, td {
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+	font-weight: normal;
+	color: black;
+}
+
+th {
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+	font-weight: bold;
+	color: black;
+}
+
+li {
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+	font-weight: normal;
+	color: black;
+}
+
+h1 {
+	text-align: center;
+	font-family: "Arial, Helvetica, sans-serif";
+	font-weight: bold;
+	font-size: large;
+}
+
+form {
+	margin: 0px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+}
+
+a:link, a:visited {
+	color: blue;
+}
+
+a:active, a:hover {
+	color: red !important;
+}
+
+div.banner {
+	margin-top: 10px;
+	margin-right: 10px;
+	margin-bottom: 10px;
+	margin-left: 10px;
+}
+
+p.slogan {
+	font-style: italic;
+	font-size: large;
+	font-weight: bold;
+	color: blue;
+}
+
+p.footer {
+	text-align: center;
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+	color: blue;
+}
+
+p.acknowledgements {
+	text-align: center;
+	font-family: "Arial, Helvetica, sans-serif";
+	font-size: small;
+}
+
+div.page_table {
+	color: red;
+}
+
+/* Style for dividing line across page, below tab and above footer */
+.tabs {
+	border-bottom: 6px #ddd solid;
+}
+
+.tabs td, .tabs th{
+	font-weight: bold;
+	padding: 3px 9px;
+}
+
+/* Style of currently selected tab */
+.tabs th {
+	border-right: 1px solid black;
+	background-color: #ddd;
+	color: #fff;
+	border-left: 1px solid #fff;
+}
+
+/* make the highlight tab text blue (not sure why 3 selectors needed) */
+.tabs th, .tabs th a:link, .tabs th a:visited {
+	color: blue;
+}
+
+/* Style of tabs NOT selected */
+.tabs td {
+	background-color: #999;
+	border-bottom: 1px solid black;
+	border-right: 1px solid black;
+	border-left: 1px solid white;
+}
+
+.tabs td, .tabs td a:link, .tabs td a:visited {
+	color: #fff;
+}
+
+.tabs a {
+	text-decoration: none;
+}
+
+</style>
+</html>
