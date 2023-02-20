@@ -10,6 +10,7 @@ import requests
 import xmltodict
 import epics
 import threading
+import logging
 
 from flask import Flask
 from flask import request as flask_request
@@ -140,7 +141,7 @@ class Uut_connector:
 		if not self.epic_last:
 			if self.is_epics_down():
 				self.kill_self()
-			prCyan(f'getting epics {self.hostname}')
+			#prCyan(f'getting epics {self.hostname}')
 			knobs = globals.mapped_knobs.copy()
 			del knobs['host']
 			for knob in knobs:
@@ -275,6 +276,7 @@ def get_claims_db():
 		claims = cursor.execute(f"SELECT * FROM {claim_table}").fetchall()
 		for claim in claims:
 			globals.claims[claim['uut_name']] = {'user': claim['user'],'test': claim['test']}
+		print(globals.claims)
 		db.close()
 
 def create_state_db():
@@ -345,7 +347,7 @@ def thread_handler():
 			clip_thread = threading.Thread(target=clipper, args=(uut_object,))
 			clip_thread.start()
 			uut_threads[hostname] = clip_thread
-		prYellow(f'{len(globals.active_uuts)} uuts active')
+		#prYellow(f'{len(globals.active_uuts)} uuts active')
 		time.sleep(1)
 		if time.time() - last_dead_check > 60:
 			prRed('Checking dead threads')
@@ -427,9 +429,11 @@ def start_web():
 		try:
 			data = flask_request.json
 			insert_record(data)
+			if not data['uut_name']:
+				return 'failure', 405
 			globals.claims[data['uut_name']] = {'user':data['user'],'test':data['test']}
 		except:
-			return 'failure', 500
+			return 'failure', 405
 		return 'success', 201
 	def insert_record(data):
 		keys = ''
@@ -442,7 +446,18 @@ def start_web():
 		cursor = db.cursor()
 		cursor.execute(sql)
 		db.commit()
+		db.close()
 
+	@app.route("/hosts")
+	def return_hosts():
+		sql = f'SELECT "ip", "uut_name" FROM {globals.table_name} ORDER BY {globals.primary_key};'
+		buffer = ""
+		unpacked = sql_to_dict(sql)
+		for row in unpacked:
+			buffer += f"{row['uut_name']} {row['ip']}<br>"
+		return buffer
+
+	#logging.getLogger('werkzeug').disabled = True
 	app.run(host="0.0.0.0", port=globals.web_port)
 
 def prRed(skk): print("\033[91m{}\033[00m" .format(skk))
