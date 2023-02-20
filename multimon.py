@@ -12,6 +12,8 @@ import epics
 import threading
 
 from flask import Flask
+from flask import request as flask_request
+from flask import render_template
 
 class globals:
 	db = None
@@ -26,7 +28,9 @@ class globals:
 
 	active_ttys = {}
 
-	web_port = 88
+	claims = {}
+
+	web_port = 5000
 
 	update_rate = 1
 
@@ -37,23 +41,22 @@ class globals:
 	primary_key = 'uut_name'
 
 	table_schema = {
+		'delay'		: 'INTEGER',
 		'uut_name' 	: 'TEXT PRIMARY KEY',
-		'ip'		: 'TEXT',
 		'tty'		: 'TEXT',
 		'user'		: 'TEXT',
 		'test'		: 'TEXT',
-		'delay'		: 'INTEGER',
-		'conn_type'	: 'TEXT',
-		#do not change above
 		'uptime'	: 'INTEGER',
-		'temp'		: 'REAL',
-		'firmware'	: 'TEXT',
-		'fpga'		: 'TEXT',
 		'cstate'	: 'INTEGER',
 		'tstate'	: 'INTEGER',
 		'shot'		: 'INTEGER',
 		'clk_set'	: 'REAL',
 		'clk_freq'	: 'REAL',
+		'firmware'	: 'TEXT',
+		'fpga'		: 'TEXT',
+		'temp'		: 'REAL',
+		'conn_type'	: 'TEXT',
+		'ip'		: 'TEXT',
 	}
 	mapped_knobs = {
 		'host'					: 'uut_name',
@@ -137,6 +140,7 @@ class Uut_connector:
 		if not self.epic_last:
 			if self.is_epics_down():
 				self.kill_self()
+			prCyan(f'getting epics {self.hostname}')
 			knobs = globals.mapped_knobs.copy()
 			del knobs['host']
 			for knob in knobs:
@@ -173,7 +177,11 @@ class Uut_connector:
 		self.__run_query(sql)
 
 	def update_record(self):
+		#print(self.state)
 		self.state['delay'] = int(self.offline)
+		if self.hostname in globals.claims:
+			self.state['user'] = globals.claims[self.hostname]['user']
+			self.state['test'] = globals.claims[self.hostname]['test']
 		changes = ''
 		for key, value in self.state.items():
 			if key == globals.primary_key:
@@ -215,7 +223,7 @@ class Uut_connector:
 		return False
 
 	def is_dead(self):
-		max_wait = 10
+		max_wait = 30
 		if self.offline > max_wait:
 			return True
 		return False
@@ -232,7 +240,8 @@ class Uut_connector:
 
 def main():
 	get_config_file()
-	create_db()
+	get_claims_db()
+	create_state_db()
 	find_lighthouse()
 	handler = threading.Thread(target=thread_handler)
 	handler.start()
@@ -248,7 +257,27 @@ def get_config_file():
 			if key in data:
 				setattr(globals, key, data[key])
 
-def create_db():
+def get_claims_db():
+		db_file = 'multimon_claims.db'
+		claim_table = 'claims'
+		claim_schema = {
+			'uut_name' 	: 'TEXT PRIMARY KEY',
+			'user'		: 'TEXT',
+			'test'		: 'TEXT',
+		}
+		db = sqlite3.connect(db_file)
+		db.row_factory = sqlite3.Row
+		cursor = db.cursor()
+		if not table_exists(cursor, claim_table):
+			prYellow("Creating claims db")
+			sql = build_create_sql(claim_table, claim_schema)
+			cursor.execute(sql)
+		claims = cursor.execute(f"SELECT * FROM {claim_table}").fetchall()
+		for claim in claims:
+			globals.claims[claim['uut_name']] = {'user': claim['user'],'test': claim['test']}
+		db.close()
+
+def create_state_db():
 	db = sqlite3.connect(":memory:", check_same_thread=False)
 	cursor = db.cursor()
 	if not table_exists(cursor, globals.table_name):
@@ -300,6 +329,7 @@ def thread_handler():
 	uut_threads = {}
 	last_dead_check = time.time()
 	while True:
+		#prCyan(f'Thread handler id {threading.get_ident()}')
 		matches = get_lighthouse_data(s)
 		if not matches:
 			s = connect_to_lighthouse()
@@ -371,44 +401,47 @@ def clipper(uut_object):
 
 
 def start_web():
-	app = Flask(__name__)
+	app = Flask(__name__, template_folder='.')
 
 	@app.route("/")
-	def root():
-		return "hello world"
-	def hello_world():
-		cursor = globals.db.cursor()
-		sql = f"SELECT * FROM states ORDER BY uut_name;"
-		rows = cursor.execute(sql).fetchall()
-		total = len(rows)
-		header = '<tr>'
-		for key in globals.table_schema.keys():
-			header += f'<th>{key}</th>'
-		header += '</tr>'
-		content = ''
-		for row in rows:
-			content += '<tr>'
-			for value in row:
-				content += f'<td>{value}</td>'
-			content += '</tr>'
-		return f"""
-		<h1>MULTIMON PORTABLE</h1>
-			<table>
-				{header}
-				{content}
-			</table>
-			<h3>Total: {total}</h3>
+	def index():
+		return render_template('index.html')
 
+	@app.route("/state.json")
+	def get_state():
+		sql = f"SELECT * FROM {globals.table_name} ORDER BY {globals.primary_key};"
+		return json.dumps(sql_to_dict(sql))
+	def sql_to_dict(sql):
+		try:
+			globals.db.row_factory = sqlite3.Row
+			cursor = globals.db.cursor()
+			rows = cursor.execute(sql).fetchall()
+			unpacked = [{k: item[k] for k in item.keys()} for item in rows]
+			return unpacked
+		except Exception as e:
+			print(f"Failed to execute query: {sql} Error: {e}")
+			return []
 
-			"""
-
-	@app.route("/state")
-	def web_update():
-		return "<p>state.json</p>"
-
-	@app.route("/endpoint")
-	def web_set():
-		return "<p>set test set users</p>"
+	@app.route("/set_claim", methods=['POST'])
+	def process_data():
+		try:
+			data = flask_request.json
+			insert_record(data)
+			globals.claims[data['uut_name']] = {'user':data['user'],'test':data['test']}
+		except:
+			return 'failure', 500
+		return 'success', 201
+	def insert_record(data):
+		keys = ''
+		values = ''
+		for key, value in data.items():
+			keys += f'{key},'
+			values += f'"{value}",'
+		db = sqlite3.connect('multimon_claims.db')
+		sql = f'INSERT OR REPLACE INTO claims ({keys[:-1]}) VALUES ({values[:-1]})'
+		cursor = db.cursor()
+		cursor.execute(sql)
+		db.commit()
 
 	app.run(host="0.0.0.0", port=globals.web_port)
 

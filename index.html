@@ -2,376 +2,384 @@
 <html>
 <head>
     <title>Multimon Portable</title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="samtest.js"></script>
 </head>
 <body>
-    <h1>Multimon Portable</h1>
-    <table id="table1">
-    </table>
-    <script>
-    </script>
+    <div class="claimOverlay" id="overlayWrapper">
+        <div class="claimOverlayCover" onclick="overlay_toggle()"></div>
+        <form onsubmit="return claim_uut();" class="claimForm" autocomplete="off">
+            <h3>Claim uut</h3>
+            <div><span>Uut:</span><input type="text" id="uutTextInput" name="uut"/></div>
+            <div><span>User:</span><input type="text" id="userTextInput" name="user"/></div>
+            <div><span>Test:</span><input type="text" id="testTextInput" name="test"/></div>
+            <button>Claim</button>
+            <span id="claimResponse" class="claimResponse"></span>
+        </form>
+    </div>
+    <header>
+        <h1>Multimon Portable<img src=https://www.d-tacq.com/images/dtacq.png> </h1>
+        <div class="inputs">
+            <div class="buttonInput">
+                <input type="checkbox" id="pauseInput" class="hidden" onchange="pause = toggle_button(event,pause,'Live','Paused')"/>
+                <label for="pauseInput" class="button">Live</label>
+                <div></div>
+            </div>
+            <div class="buttonInput">
+                <input type="checkbox" id="claimButton" class="hidden" onclick="overlay_toggle()"/>
+                <label for="claimButton" class="button">Claim UUT</label>
+            </div>
+        </div>
+    </header>
+    <main>
+        <table id="statusTable"></table>
+        <h3>Total: <span id="totalRows"></span></h3>
+    </main>
 </body>
 <style>
 body {
-    background-color: grey;
+    background-color: #E8E9F3;
     font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    max-width: 90%;
+    margin: 0 auto;
+    position: relative
+}
+.claimOverlay{
+    z-index:    10;
+    top:        0;
+    left:       0;
+    position:   fixed;
+    width:      100%;
+    height:     100%;
+    display: none;
+}
+.claimOverlayCover{
+    background: #000;
+    opacity: 0.3;
+    width:      100%;
+    height:     100%;
+}
+.claimForm{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #007bff;
+    border: 1px solid black;
+    padding: 0px 10px;
+    color: white;
+}
+.claimForm div{
+    text-align: left;
+}
+.claimForm input{
+    display: block;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    border-bottom: 1px solid black;
+    margin-bottom: 10px;
+    color: black;
+    max-width: 200px;
+}
+.claimForm button{
+    font-size: 20px;
+    background-color: #E8E9F3;
+    padding: 5px 10px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: none
+}
+.claimForm button:active{
+    background-color: red;
+}
+header{
+    position: relative;
+    text-align: left;
+}
+header h1{
+    padding-left: 50px;
+    position: relative;
+}
+header h1 img{
+    position: absolute;
+    left: 0;
+    height: 100%;
+}
+.inputs {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    bottom: 0;
+    right: 0px;
+    margin: auto;
+}
+
+#pauseInput:checked + label{
+    color: red;
+}
+.buttonInput{
+    position: relative;
+    display: inline-block;
+    user-select: none;
+}
+.button{
+    border: 1px solid black;
+    padding: 3px;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    padding: 5px;
+    font-weight: bold;
+    display: block;
+}
+#pauseInput + label{
+    color: #00FF0DFF;
+    padding-right: 25px;
+}
+#pauseInput:checked + label{
+    color: grey;
+}
+#pauseInput + label + div{
+    background-color: red;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    display: inline-block;
+    position: absolute;
+    top: -2px;
+    bottom: 0;
+    right: 8px;
+    margin: auto;
+    animation: blinker 1s linear infinite;
+}
+#pauseInput:checked + label + div{
+    background-color: grey;
+    animation: none;
+}
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+main table{
+    margin: 0 auto;
+    width: 100%;
 }
 .dataRow{
-    background-color: green;
+    background-color: white;
 }
 .dataRow:nth-child(2n){
-    background-color: blue;
+    background-color: #ADD8E6;
 }
-#ip{
-    background-color: yellow;
+td{
+    border: 1px solid black;
+    text-align: right;
+    padding: 5px 2px;
+    position: relative;
+    height: 100%;
 }
-#cstate{
-    background-color: whitesmoke;
+.dataRow td a{
+    text-decoration: none;
+    color: black;
+    display: inline-block;
+    height: 100%;
 }
-.pretab {
-	border-spacing: 0;
-	border-collapse: collapse;
-	margin: 0px 0px 0px 0px;
-	padding: 0px 0px 0px 0px;
+td.uut_name:hover, td.ip:hover{
+    background-color: #00FF0DFF;
 }
-.vchanged { color:blue; }
-
-pre.regular { color:blue; font-family: "Courier New", Courier, monospace; }
-
-.tblocks {
-	padding-top: 2px;
-	padding-bottom: 2px;
+.hidden{
+    display: none;
 }
-td.tblock_cooked {
-	padding-left: 10px;
-	padding-right: 10px;
-	background-color:  blue;
+.conn_type, .ip{
+    display: none;
 }
-td.tblock_shared {
-	padding-left: 10px;
-	padding-right: 10px;
-	background-color: green;
+.IDLE{
+    background-color: #ff8080;
 }
-td.tblock_raw {
-	padding-left: 10px;
-	padding-right: 10px;
-	background-color: red;
+.ARM{
+    background-color: #ffc080;
 }
-td.tblock_empty {
-	padding-left: 10px;
-	padding-right: 10px;
-	background-color:  grey;
+.RUN{
+    background-color: #92fb8f;
 }
-div.gloss_detail
-{
-	background-color:yellow;
-	border: 2px solid black;
-	margin: 20px 4px 20px 4px;
-	padding: 5px;
+.CLEANUP{
+    background-color: #80ffff;
 }
-
-a.gloss, a.gloss:link, a.gloss:visited {
-	color: black;
-	font-style: italic;
+.NOSTATE{
+    background-color: grey;
 }
-
-a.dtacq {
-	color: black;
-	font-weight: bold;
+.delayed{
+    border: 3px solid red;
+    color: red;
 }
-
-.vanilla-link {
-	color:blue;
-}
-
-ul {
-	list-style-image: url(images/d-tacq-icon-small.gif);
-}
-#dtacqlogo {
-	border-color: blue;
-	margin-left: 10px
-}
-
-td.footer-valid {
-	border-style: none;
-	text-align: right;
-	padding-left: 140px;
-}
-
-img {
-	border: none;
-}
-
-.tblocks {
-	border: 2px solid black;
-	/* margin: 20px 20px 20px 20px; */
-	padding: 2px;
-}
-table.REMpg-page-table
-{
-	border-collapse: collapse;
-	border-spacing: 10px;
-	empty-cells: hide;
-}
-
-td.REMpg-page-td-left
-{
-	width: 20%;
-	vertical-align: top;
-	border: none;
-	border-right: medium solid #ddd;
-	border-left: medium solid #ddd;
-	background-color: white;
-	color: black;
-	padding: 10px;
-}
-
-td.REMpg-page-td-right
-{
-	width: 80%;
-	vertical-align: top;
-	border: none;
-	border-right: medium solid #ddd;
-	background-color: white;
-	color: black;
-	padding: 10px;
-	padding-left: 20px;
-	padding-right: 20px;
-}
-
-/* Spacer used within page layouts */
-div.REMpg-div
-{
-	margin-top: 10px;
-	margin-right: 0px;
-	margin-bottom: 0px;
-	margin-left: 0px;
-	padding: 0px 0px 0px 0px;
-}
-
-/* Style for page images in left column */
-img.REMpg-img
-{
-	width: 200px;
-	height: 135px;
-	float: left;
-	padding: 0px 0px 0px 0px;
-	margin-top: 5px;
-}
-
-td.REMpg-img-p
-{
-	color: black;
-}
-
-/* REMkey=title class */
-h1.REMpg-top-heading
-{
-	background-color: white;
-  	font-family: Arial, Helvetica, sans-serif;
-	color: black;
-	font-weight: bold;
-	font-size: large;
-	vertical-align: middle;
-	text-align: center;
-}
-
-/* REMkey=heading class */
-h1.REMpg-heading
-{
-	background-color: white;
-  	font-family: Arial, Helvetica, sans-serif;
-	color: black;
-	font-weight: bold;
-	font-size: large;
-	vertical-align: middle;
-	text-align: center;
-}
-
-/* REMkey=paragraph class */
-p.REMpg-ptext
-{
-	color: black;
-}
-
-/* REMkey=table class */
-table.REMpg-table
-{
-	border: medium solid blue;
-	border-collapse: collapse;
-	empty-cells: show;
-}
-
-td.REMpg-tdH
-{
-	border: thin solid gray;
-	background-color: white;
-	color: black;
-	font-weight: bold;
-	vertical-align: middle;
-	text-align: center;
-	padding: 5px 5px 5px 5px;
-}
-
-td.REMpg-td
-{
-	border: thin solid gray;
-  	font-family: Courier, sans-serif;
-	color: black;
-	vertical-align: middle;
-	text-align: right;
-	padding: 5px 5px 5px 5px;
-}
-
-td.REMpg-td-idle
-{
-	border: thin solid gray;
-	color: black;
-	background-color: white;
-	color: black;
-	vertical-align: middle;
-	text-align: left;
-	padding: 5px 10px 5px 5px;
-}
-
-/* REMkey=list class */
-ul.REMpg-ul
-{
-	vertical-align: top;
-}
-
-li.REMpg-li
-{
-	color: black;
-	margin-top: 0px;
-	padding-top: 0px;
-}
-p {
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-	font-weight: normal;
-	color: black;
-}
-
-p.important {
-	color: red;
-}
-
-table, th, td {
-	border: none;
-}
-
-th, td {
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-	font-weight: normal;
-	color: black;
-}
-
-th {
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-	font-weight: bold;
-	color: black;
-}
-
-li {
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-	font-weight: normal;
-	color: black;
-}
-
-h1 {
-	text-align: center;
-	font-family: "Arial, Helvetica, sans-serif";
-	font-weight: bold;
-	font-size: large;
-}
-
-form {
-	margin: 0px 0px 0px 0px;
-	padding: 0px 0px 0px 0px;
-}
-
-a:link, a:visited {
-	color: blue;
-}
-
-a:active, a:hover {
-	color: red !important;
-}
-
-div.banner {
-	margin-top: 10px;
-	margin-right: 10px;
-	margin-bottom: 10px;
-	margin-left: 10px;
-}
-
-p.slogan {
-	font-style: italic;
-	font-size: large;
-	font-weight: bold;
-	color: blue;
-}
-
-p.footer {
-	text-align: center;
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-	color: blue;
-}
-
-p.acknowledgements {
-	text-align: center;
-	font-family: "Arial, Helvetica, sans-serif";
-	font-size: small;
-}
-
-div.page_table {
-	color: red;
-}
-
-/* Style for dividing line across page, below tab and above footer */
-.tabs {
-	border-bottom: 6px #ddd solid;
-}
-
-.tabs td, .tabs th{
-	font-weight: bold;
-	padding: 3px 9px;
-}
-
-/* Style of currently selected tab */
-.tabs th {
-	border-right: 1px solid black;
-	background-color: #ddd;
-	color: #fff;
-	border-left: 1px solid #fff;
-}
-
-/* make the highlight tab text blue (not sure why 3 selectors needed) */
-.tabs th, .tabs th a:link, .tabs th a:visited {
-	color: blue;
-}
-
-/* Style of tabs NOT selected */
-.tabs td {
-	background-color: #999;
-	border-bottom: 1px solid black;
-	border-right: 1px solid black;
-	border-left: 1px solid white;
-}
-
-.tabs td, .tabs td a:link, .tabs td a:visited {
-	color: #fff;
-}
-
-.tabs a {
-	text-decoration: none;
-}
-
 </style>
+<script>
+var special_keys = {
+    'uut_name' : add_link,
+    'ip' : add_link,
+    'cstate' : add_state_color,
+    'tstate' : add_state_color,
+    'clk_set' : add_commas,
+    'clk_freq' : add_commas,
+    'delay' : add_conn_status,
+}
+var pause = false;
+
+function main(){
+    if(!pause){
+        get_json();
+    }
+    setTimeout(main, 1000);
+}
+
+function get_json(){
+    const url = "state.json"
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 && xhr.status == 200) {
+            update_rows(xhr.response);
+        }
+    }
+    xhr.send();
+}
+
+function update_rows(rows){
+    console.log("updating rows");
+    old_table = document.getElementById("statusTable");
+    total = document.getElementById("totalRows");
+    new_table = document.createElement('table');
+    header_keys = Object.keys(rows[0]);
+    header = build_header(header_keys);
+    new_table.appendChild(header);
+    new_table.id = "statusTable";
+    for(const idx in rows){
+        new_row = build_row(rows[idx]);
+        new_table.appendChild(new_row);
+    }
+    old_table.replaceWith(new_table)
+    total.textContent = rows.length
+}
+
+function build_header(header_keys) {
+    new_row = document.createElement('tr');
+    new_row.className = "headerRow"
+    for(const idx in header_keys){
+        new_cell = document.createElement('th');
+        new_cell.textContent = header_keys[idx]
+        new_cell.className = header_keys[idx]
+        new_row.appendChild(new_cell);
+    }
+    return new_row
+}
+
+function build_row(row_data){
+    new_row = document.createElement('tr');
+    new_row.className = "dataRow"
+    for(const [key, value] of Object.entries(row_data)){
+        new_cell = document.createElement('td');
+        new_cell.textContent = value
+        new_cell.className = key
+        if(is_special(key)){
+            new_cell = special_keys[key](new_cell, key, row_data)
+        }
+        new_row.appendChild(new_cell);
+    }
+    return new_row
+}
+
+function is_blacklisted(value){
+    return blacklisted_keys.includes(value);
+}
+
+function is_special(value){
+    return value in special_keys;
+}
+function add_link(new_cell, key, row_data){
+    new_link = document.createElement('a');
+    new_link.href = 'http://' + row_data[key];
+    new_link.textContent = new_cell.textContent
+    new_cell.textContent = ""
+    new_cell.appendChild(new_link);
+    return new_cell
+}
+function add_state_color(new_cell, key, row_data){
+    var state_enum = {
+        '0' : 'IDLE',
+        '1' : 'ARM',
+        '2' : 'RUN',
+        '3' : 'UNKNOWN',
+        '4' : 'UNKNOWN',
+        '5' : 'CLEANUP',
+    }
+    value = row_data[key]
+    new_cell.className = value
+    if(value in state_enum){
+        new_cell.textContent = state_enum[value]
+        new_cell.className = state_enum[value]
+    }
+    if (value == null){
+        new_cell.textContent = 'NULL';
+        new_cell.className = 'NOSTATE';
+    }
+    return new_cell
+}
+function add_commas(new_cell, key, row_data){
+    value = row_data[key]
+    if(value){
+        new_cell.textContent = value.toLocaleString('en', {useGrouping:true})
+    }
+    return new_cell
+}
+function add_conn_status(new_cell, key, row_data){
+    value = row_data[key]
+    if(value > 1){
+        new_cell.className += " delayed";
+    }
+    return new_cell
+}
+function toggle_button(event, variable, true_str, false_str){
+    label_string = variable ? true_str : false_str;
+    console.log(label_string);
+    console.log(variable);
+    variable = !variable;
+    event.srcElement.labels[0].textContent = label_string
+    return variable
+}
+function claim_uut(){
+    payload = {}
+    payload['uut_name'] = document.getElementById("uutTextInput").value;
+    payload['user'] = document.getElementById("userTextInput").value;
+    payload['test'] = document.getElementById("testTextInput").value;
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", '/set_claim', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onreadystatechange = function() {
+        if(xhr.readyState == 4 ){
+            document.getElementById("claimResponse").textContent = xhr.responseText
+        }
+    }
+    xhr.send(JSON.stringify(payload));
+    return false
+}
+function overlay_toggle(){
+    overlay = document.getElementById("overlayWrapper")
+    console.log(overlay.style.display)
+    overlay.style.display = overlay.style.display != 'block' ? 'block' : 'none';
+}
+
+document.addEventListener("visibilitychange",()=>{
+    if(document.visibilityState==="hidden"){
+        pause = true
+    }
+    else{
+        pause = false
+    }
+})
+main()
+</script>
 </html>
