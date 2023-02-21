@@ -24,7 +24,7 @@
         </h1>
         <div class="inputs">
             <div class="buttonInput">
-                <input type="checkbox" id="pauseInput" class="hidden" onchange="pause = toggle_button(event,pause,'Live','Paused')"/>
+                <input type="checkbox" id="pauseInput"  class="hidden" onchange="toggle_live(event)"/>
                 <label for="pauseInput" class="button">Live</label>
                 <div></div>
             </div>
@@ -258,12 +258,10 @@ var special_keys = {
     'clk_freq' : add_commas,
     'delay' : add_conn_status,
 }
-var pause = false;
-
 var active_uuts = [];
 
 function main(){
-    if(!pause){
+    if(!document.getElementById("pauseInput").checked && document.visibilityState != "hidden"){
         get_json();
     }
     setTimeout(main, 1000);
@@ -377,13 +375,8 @@ function add_conn_status(new_cell, key, row_data){
     }
     return new_cell
 }
-function toggle_button(event, variable, true_str, false_str){
-    label_string = variable ? true_str : false_str;
-    console.log(label_string);
-    console.log(variable);
-    variable = !variable;
-    event.srcElement.labels[0].textContent = label_string
-    return variable
+function toggle_live(event){
+    event.srcElement.labels[0].textContent = event.srcElement.checked ? 'Paused' : 'Live';
 }
 function claim_uut(){
     payload = {}
@@ -412,9 +405,6 @@ function overlay_toggle(){
     overlay = document.getElementById("overlayWrapper");
     overlay.style.display = overlay.style.display != 'block' ? 'block' : 'none';
 }
-document.addEventListener("visibilitychange",()=>{
-    pause = document.visibilityState==="hidden" ? true : false
-})
 main()
 </script>
 </html>

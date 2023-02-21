@@ -457,7 +457,7 @@ def start_web():
 			buffer += f"{row['uut_name']} {row['ip']}<br>"
 		return buffer
 
-	#logging.getLogger('werkzeug').disabled = True
+	logging.getLogger('werkzeug').disabled = True
 	app.run(host="0.0.0.0", port=globals.web_port)
 
 def prRed(skk): print("\033[91m{}\033[00m" .format(skk))
