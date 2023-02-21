@@ -70,6 +70,8 @@ class globals:
 		'1:SHOT'				: 'shot',
 		'0:SIG:CLK_MB:SET'		: 'clk_set',
 		'0:SIG:CLK_MB:FREQ'		: 'clk_freq',
+		'USER'					: 'user',
+		'TEST_DESCR'			: 'test',
 	}
 
 class Uut_connector:
@@ -92,7 +94,7 @@ class Uut_connector:
 			response = requests.head(self.url)
 			self.state['ip'] = socket.gethostbyname(self.hostname)
 		except Exception as e:
-			print(e)
+			#print(e)
 			self.__connection_down()
 			return
 		if response.status_code != 200:
@@ -108,7 +110,7 @@ class Uut_connector:
 		try:
 			response = requests.get(self.url, timeout=2.50)
 		except Exception as e:
-			print(e)
+			#print(e)
 			self.__connection_down()
 			return
 		if response.status_code != 200:
@@ -120,7 +122,7 @@ class Uut_connector:
 
 	def __data_extractor(self, data):
 		extracted_data = {}
-		if type(data) is dict:
+		if type(data) is not list:
 			if '@n' in data:
 				if data['@n'] in globals.mapped_knobs:
 					extracted_data[globals.mapped_knobs[data['@n']]] = data['v']
@@ -200,7 +202,7 @@ class Uut_connector:
 		try:
 			cursor.execute(sql)
 		except Exception as e:
-			print(e)
+			#print(e)
 			self.__connection_down()
 
 	def __connection_down(self):
@@ -219,7 +221,7 @@ class Uut_connector:
 			s.settimeout(3)
 			s.connect((self.hostname, 80))
 		except Exception as e:
-			print(e)
+			#print(e)
 			return True
 		return False
 
@@ -276,7 +278,6 @@ def get_claims_db():
 		claims = cursor.execute(f"SELECT * FROM {claim_table}").fetchall()
 		for claim in claims:
 			globals.claims[claim['uut_name']] = {'user': claim['user'],'test': claim['test']}
-		print(globals.claims)
 		db.close()
 
 def create_state_db():
@@ -326,6 +327,8 @@ def check_if_casw(host):
 def thread_handler():
 	tty_monitor = threading.Thread(target=get_tty_connections)
 	tty_monitor.start()
+	whitelist = ['z7io_011','acq2106_350']
+	whitelist = []
 	s = connect_to_lighthouse()
 	expr = re.compile('([\w]+)[\.\w\-]*:5064')
 	uut_threads = {}
@@ -337,6 +340,9 @@ def thread_handler():
 			s = connect_to_lighthouse()
 			continue
 		for hostname in matches:
+			if whitelist:
+				if hostname not in whitelist:
+					continue
 			if hostname in globals.active_uuts:
 				continue
 			if hostname.isnumeric():
@@ -404,6 +410,8 @@ def clipper(uut_object):
 
 def start_web():
 	app = Flask(__name__, template_folder='.')
+	from werkzeug.middleware.proxy_fix import ProxyFix
+	app.wsgi_app = ProxyFix(app.wsgi_app, x_host=1)
 
 	@app.route("/")
 	def index():

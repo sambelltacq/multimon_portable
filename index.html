@@ -33,7 +33,7 @@
                 <label for="claimButton" class="button">Claim UUT</label>
             </div>
             <div class="buttonInput">
-                <a href="hosts" class="button">Hosts</a>
+                <a href="multimon/hosts" class="button">Hosts</a>
             </div>
         </div>
     </header>
@@ -260,6 +260,8 @@ var special_keys = {
 }
 var active_uuts = [];
 
+const url_pre = 'multimon/'
+
 function main(){
     if(!document.getElementById("pauseInput").checked && document.visibilityState != "hidden"){
         get_json();
@@ -268,7 +270,7 @@ function main(){
 }
 
 function get_json(){
-    const url = "state.json"
+    const url = url_pre + "state.json"
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'json';
@@ -380,11 +382,12 @@ function toggle_live(event){
 }
 function claim_uut(){
     payload = {}
+    const url = url_pre + "set_claim"
     payload['uut_name'] = document.getElementById("uutTextInput").value;
     payload['user'] = document.getElementById("userTextInput").value;
     payload['test'] = document.getElementById("testTextInput").value;
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", '/set_claim', true);
+    xhr.open("POST", url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onreadystatechange = function() {
         if(xhr.readyState == 4 ){
