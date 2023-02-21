@@ -228,24 +228,40 @@ main h3{
 .conn_type, .ip{
     display: none;
 }
-.IDLE{
+.tty{
+    min-width: 70px;
+}
+.cstate, .tstate{
+    min-width: 80px;
+}
+.firmware, .fpga{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-height: 31px;
+}
+#IDLE{
     background-color: #ff8080;
 }
-.ARM{
+#ARM{
     background-color: #ffc080;
 }
-.RUN{
+#RUN{
     background-color: #92fb8f;
 }
-.CLEANUP{
+#CLEANUP{
     background-color: #80ffff;
 }
-.NOSTATE{
+#NOSTATE{
     background-color: grey;
+}
+.delay{
+    box-sizing: border-box;
 }
 .delayed{
     border: 3px solid red;
     color: red;
+    box-sizing: border-box;
 }
 </style>
 <script>
@@ -347,19 +363,19 @@ function add_state_color(new_cell, key, row_data){
         '0' : 'IDLE',
         '1' : 'ARM',
         '2' : 'RUN',
-        '3' : 'UNKNOWN',
-        '4' : 'UNKNOWN',
+        '3' : 'RPOST',
+        '4' : 'PPROC',
         '5' : 'CLEANUP',
     }
     value = row_data[key]
-    new_cell.className = value
+    new_cell.id = value
     if(value in state_enum){
         new_cell.textContent = state_enum[value]
-        new_cell.className = state_enum[value]
+        new_cell.id = state_enum[value]
     }
     if (value == null){
         new_cell.textContent = 'NULL';
-        new_cell.className = 'NOSTATE';
+        new_cell.id = 'NOSTATE';
     }
     return new_cell
 }

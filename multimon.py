@@ -226,7 +226,7 @@ class Uut_connector:
 		return False
 
 	def is_dead(self):
-		max_wait = 30
+		max_wait = 60
 		if self.offline > max_wait:
 			return True
 		return False
