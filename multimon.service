@@ -1,0 +1,13 @@
+[Unit]
+Description=multimon protable deamon
+After=network.target
+
+[Service]
+User=dt100
+WorkingDirectory=/var/www/default/multimon_portable
+ExecStart=/var/www/default/multimon_portable/multimon.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
