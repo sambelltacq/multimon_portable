@@ -1,6 +1,13 @@
 # multimon_portable
 ## Web status monitor for a fleet of ACQ400 systems on LAN
 
+### Typical Screenshot:
+
+![Screenshot](https://github.com/D-TACQ/multimon_portable/releases/download/v1.0.0/Screenshot.from.2023-04-07.16-58-31.png "Screenshot")
+
+### A large fleet of units under test earlier:
+https://github.com/D-TACQ/multimon_portable/releases/download/v1.0.0/Screenshot.from.2020-08-18.08-59-06.png
+
 Prerequisites:
 * python3 packages: flask requests xml2dict
 * we assume there is a working DNS
