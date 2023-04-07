@@ -1,5 +1,14 @@
 # multimon_portable
-Multimonitor for d-tacq acqs
+## Web status monitor for a fleet of ACQ400 systems on LAN
+
+Prerequisites:
+* python3 flask requests xml2dict
+* we assume there is a working DNS
+* Multimon uses EPICS beacons to detect new devices, however we wanted to avoid needing to install EPICS on the host, and also to make the appropriate firewall entry, instead:
+* Multimon needs to know the name of a "lighthouse" : a first ACQ400 system to get a TCP socket feed of all EPICS beacon data
+* for initial testing, just run it, then connect a local web browser to localhost:5000/
+
+
 
 To run as service do:
 ```
