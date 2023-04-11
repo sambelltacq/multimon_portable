@@ -18,9 +18,9 @@
         </form>
     </div>
     <header>
-        <h1>Multimon Portable
+        <h1>ACQ400 UUT Status
             <img src=https://www.d-tacq.com/images/dtacq.png>
-            <span>ACQ400 UUT Status for the DNS-ly challenged</span>
+            <span>Multimon Portable</span>
         </h1>
         <div class="inputs">
             <div class="buttonInput">
@@ -276,7 +276,9 @@ var special_keys = {
 }
 var active_uuts = [];
 
-const url_pre = 'multimon/'
+const url_pre = 'multimon/';
+// @@TEST when running a test server at localhost:5000/ set this:
+//const url_pre = '';
 
 function main(){
     if(!document.getElementById("pauseInput").checked && document.visibilityState != "hidden"){

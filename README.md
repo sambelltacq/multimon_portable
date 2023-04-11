@@ -1,5 +1,37 @@
 # multimon_portable
-Multimonitor for d-tacq acqs
+## Web status monitor for a fleet of ACQ400 systems on LAN
+
+### Typical Screenshot:
+
+![Screenshot](https://github.com/D-TACQ/multimon_portable/releases/download/v1.0.0/Screenshot.from.2023-04-07.16-58-31.png "Screenshot")
+
+### A large fleet of units under test earlier:
+https://github.com/D-TACQ/multimon_portable/releases/download/v1.0.0/Screenshot.from.2020-08-18.08-59-06.png
+
+Prerequisites:
+* python3 packages: flask requests xml2dict
+* we assume there is a working DNS
+* Multimon uses EPICS beacons to detect new devices, however we wanted to avoid needing to install EPICS on the host, and also to make the appropriate firewall entry, instead:
+* Multimon needs to know the name of a "lighthouse" : a first ACQ400 system to get a TCP socket feed of all EPICS beacon data
+* For production, use redirection from a webserver on the same box (nginx example shown below)
+* for initial testing, it's quicket to use the embedded webserver and a local browser
+  * search @@TEST in index.html to reset the URL path, set the lighthouse initial HOSTNAME in multimon.py
+  * then just run it: 
+  ```
+  [peter@andros multimon_portable]$ ./multimon.py 
+  casw server established acq2006_015
+  * Serving Flask app "multimon" (lazy loading)
+  * Environment: production
+    WARNING: This is a development server. Do not use it in a production deployment.
+    Use a production WSGI server instead.
+  *  Debug mode: off
+  Adding acq2206_001
+  Adding acq2106_387
+  ...
+  ```
+  * then connect a local web browser to localhost:5000/, 
+
+
 
 To run as service do:
 ```
