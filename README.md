@@ -15,10 +15,10 @@ Prerequisites:
 * Multimon needs to know the name of a "lighthouse" : a first ACQ400 system to get a TCP socket feed of all EPICS beacon data
 * For production, use redirection from a webserver on the same box (nginx example shown below)
 * for initial testing, it's quicket to use the embedded webserver and a local browser
-  * search @@TEST in index.html to reset the URL path, set the lighthouse initial HOSTNAME in multimon.py
-  * then just run it: 
+  * Add the lighthouse initial HOSTNAME in config.json
+  * then just run it:
   ```
-  [peter@andros multimon_portable]$ ./multimon.py 
+  [peter@andros multimon_portable]$ ./multimon.py
   casw server established acq2006_015
   * Serving Flask app "multimon" (lazy loading)
   * Environment: production
@@ -29,7 +29,7 @@ Prerequisites:
   Adding acq2106_387
   ...
   ```
-  * then connect a local web browser to localhost:5000/, 
+  * then connect a local web browser to localhost:5000/,
 
 
 
