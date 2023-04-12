@@ -11,15 +11,16 @@ import xmltodict
 import epics
 import threading
 import logging
+from datetime import datetime
 
 from flask import Flask
 from flask import request as flask_request
-from flask import render_template
+from flask import send_file
 
 class globals:
 	db = None
 
-	lock = None
+	db_lock = threading.RLock()
 
 	lighthouses = ['acq1001_074']
 
@@ -82,11 +83,25 @@ class Uut_connector:
 		self.state[globals.primary_key] = hostname
 		self.offline = 0
 		self.last_contact = 0
+		self.web_claim = False
+		self.thread_start = time.time()
 
-		self.epic_last = 0
-		self.epics_callbacks = []
+		self.pvs = []
+		self.checked_tardy = False
+
+		self.check_valid_host()
 		self.check_legacy()
 		self.create_record()
+
+	def check_valid_host(self):
+		host_url = f'http://{self.hostname}'
+		try:
+			response = requests.head(host_url)
+			print(f'{self.hostname} is valid')
+		except Exception as e:
+			print(e)
+			print(f'{self.hostname} is invalid')
+			self.kill_self
 
 	def check_legacy(self):
 		self.url = f'http://{self.hostname}/d-tacq/data/status.xml'
@@ -100,11 +115,13 @@ class Uut_connector:
 		if response.status_code != 200:
 			self.legacy = True
 			self.state['conn_type'] = 'EPICS'
+			self.__create_epics_pvs()
 			self.get_state = self.__get_status_epics
-			return
-		self.legacy = False
-		self.state['conn_type'] = 'WEB'
-		self.get_state = self.__get_status_http
+		else:
+			self.__destroy_epics_pvs()
+			self.legacy = False
+			self.state['conn_type'] = 'WEB'
+			self.get_state = self.__get_status_http
 
 	def __get_status_http(self):
 		try:
@@ -139,32 +156,35 @@ class Uut_connector:
 				extracted_data.update(self.__data_extractor(item))
 		return extracted_data
 
+	def __create_epics_pvs(self):
+		knobs = globals.mapped_knobs.copy()
+		del knobs['host']
+		self.pvs = [epics.PV(f'{self.hostname}:{knob}') for knob in knobs]
+
+	def __destroy_epics_pvs(self):
+		for p in self.pvs:
+			p.disconnect()
+		self.pvs = []
+
 	def __get_status_epics(self):
-		if not self.epic_last:
-			if self.is_epics_down():
-				self.kill_self()
-			#prCyan(f'getting epics {self.hostname}')
-			knobs = globals.mapped_knobs.copy()
-			del knobs['host']
-			for knob in knobs:
-				knob = f'{self.hostname}:{knob}'
-				self.epics_callbacks.append(epics.PV(knob, auto_monitor=True, form='native', callback=self.__epics_callback))
-			self.epic_last = time.time()
+		if not self.pvs[0].connected:
+			self.__connection_down()
 			return
-		if time.time() - self.epic_last > 60:
-			for callback in self.epics_callbacks:
-				callback.disconnect()
-			self.epic_last = 0
-			self.epics_callbacks = []
-		self.offline += 1
+		#for p in self.pvs:
+			#print(dir(p))
+			#print(f"{p.pvname} {p.value}")
+		self.__connection_up()
+		pv_host = f'{self.hostname}:'
+		knob_values = dict([(globals.mapped_knobs[p.pvname.split(pv_host)[1]], p.get()) for p in self.pvs])
+		self.state = {**self.state, **knob_values}
+		self.__check_if_web_up()
 
-
-	def __epics_callback(self, **kws):
-		host = f'{self.hostname}:'
-		key = kws['pvname'].replace(host,'')
-		value = kws['value']
-		self.state[globals.mapped_knobs[key]] = value
-		self.offline = 0
+	def __check_if_web_up(self):
+		if not self.checked_tardy:
+			if time.time() - self.thread_start > 300:
+				prGreen('checking if web is ready')
+				self.check_legacy()
+				self.checked_tardy = True
 
 	def check_tty(self):
 		if self.hostname in globals.active_ttys:
@@ -180,14 +200,21 @@ class Uut_connector:
 		self.__run_query(sql)
 
 	def update_record(self):
-		#print(self.state)
 		self.state['delay'] = int(self.offline)
+
 		if self.hostname in globals.claims:
+			self.web_claim = True
 			self.state['user'] = globals.claims[self.hostname]['user']
 			self.state['test'] = globals.claims[self.hostname]['test']
+		elif self.web_claim:
+			self.web_claim = False
+			self.state['user'] = ''
+			self.state['test'] = ''
 		changes = ''
 		for key, value in self.state.items():
 			if key == globals.primary_key:
+				continue
+			if value == None:
 				continue
 			changes += f'{key} = "{value}",'
 		sql = f'UPDATE {globals.table_name} SET {changes[:-1]} where {globals.primary_key} = "{self.state[globals.primary_key]}"'
@@ -202,57 +229,49 @@ class Uut_connector:
 		try:
 			cursor.execute(sql)
 		except Exception as e:
-			#print(e)
+			print(e)
 			self.__connection_down()
 
 	def __connection_down(self):
-		prRed(f"{self.hostname} is DOWN")
-		if not self.offline:
+		if self.offline == 0:
+			print(f"{self.hostname} is DOWN")
 			self.last_contact = time.time()
 		self.offline = time.time() - self.last_contact
 
 	def __connection_up(self):
+			if self.offline > 0:
+				print(f"{self.hostname} is UP")
 			self.offline = 0
 			self.last_contact = 0
 
-	def is_epics_down(self):
-		try:
-			s = socket.socket()
-			s.settimeout(3)
-			s.connect((self.hostname, 80))
-		except Exception as e:
-			#print(e)
-			return True
-		return False
-
 	def is_dead(self):
-		max_wait = 60
+		max_wait = 30
 		if self.offline > max_wait:
+			print(f'{self.hostname} is dead')
 			return True
 		return False
 
 	def kill_self(self):
 		globals.active_uuts.remove(self.hostname)
 		self.delete_record()
-		prRed(f'{self.hostname} is offline removing')
+		print(f'killing {self.hostname}')
 		exit()
 
-######################################################################################
-
-
-
+#main here
 def main():
+	print('Multimon portable V2')
 	get_config_file()
 	get_claims_db()
 	create_state_db()
 	find_lighthouse()
 	handler = threading.Thread(target=thread_handler)
+	handler.daemon = True
 	handler.start()
 	start_web()
 
 def get_config_file():
 	config_file = 'config.json'
-	valid_keys = {'lighthouses','update_rate','web_port','tty_servers'}
+	valid_keys = {'lighthouses','web_port','tty_servers'}
 	if os.path.exists(config_file):
 		file = open(config_file, "r")
 		data = json.loads(file.read())
@@ -326,15 +345,15 @@ def check_if_casw(host):
 
 def thread_handler():
 	tty_monitor = threading.Thread(target=get_tty_connections)
+	tty_monitor.daemon = True
 	tty_monitor.start()
-	whitelist = ['z7io_011','acq2106_350']
+	whitelist = ['acq2006_014']
 	whitelist = []
 	s = connect_to_lighthouse()
 	expr = re.compile('([\w]+)[\.\w\-]*:5064')
 	uut_threads = {}
 	last_dead_check = time.time()
 	while True:
-		#prCyan(f'Thread handler id {threading.get_ident()}')
 		matches = get_lighthouse_data(s)
 		if not matches:
 			s = connect_to_lighthouse()
@@ -347,23 +366,24 @@ def thread_handler():
 				continue
 			if hostname.isnumeric():
 				continue
-			prGreen(f'Adding {hostname}')
+			print(f'Adding {hostname}')
 			globals.active_uuts.add(hostname)
 			uut_object = Uut_connector(hostname)
 			clip_thread = threading.Thread(target=clipper, args=(uut_object,))
+			clip_thread.daemon = True
 			clip_thread.start()
 			uut_threads[hostname] = clip_thread
-		#prYellow(f'{len(globals.active_uuts)} uuts active')
 		time.sleep(1)
 		if time.time() - last_dead_check > 60:
-			prRed('Checking dead threads')
 			last_dead_check = time.time()
 			for hostname in uut_threads.copy().keys():
 				if not uut_threads[hostname].is_alive():
+					print(f'{hostname} thread has died unexpectedly :o')
 					if hostname in globals.active_uuts:
 						globals.active_uuts.remove(hostname)
 					del uut_threads[hostname]
-					prRed(f'{hostname} thread has died unexpectedly')
+				else:
+					print(f'{hostname} thread is alive')
 
 def connect_to_lighthouse():
 	s = socket.socket()
@@ -415,7 +435,7 @@ def start_web():
 
 	@app.route("/")
 	def index():
-		return render_template('index.html')
+		return send_file('index.html')
 
 	@app.route("/state.json")
 	def get_state():
@@ -432,41 +452,70 @@ def start_web():
 			print(f"Failed to execute query: {sql} Error: {e}")
 			return []
 
-	@app.route("/set_claim", methods=['POST'])
-	def process_data():
-		try:
-			data = flask_request.json
-			insert_record(data)
-			if not data['uut_name']:
-				return 'failure', 405
-			globals.claims[data['uut_name']] = {'user':data['user'],'test':data['test']}
-		except:
-			return 'failure', 405
-		return 'success', 201
-	def insert_record(data):
-		keys = ''
-		values = ''
-		for key, value in data.items():
-			keys += f'{key},'
-			values += f'"{value}",'
-		db = sqlite3.connect('multimon_claims.db')
-		sql = f'INSERT OR REPLACE INTO claims ({keys[:-1]}) VALUES ({values[:-1]})'
-		cursor = db.cursor()
-		cursor.execute(sql)
-		db.commit()
-		db.close()
+	@app.route("/set_claim", methods = ['POST'])
+	def process_claim():
+		claim = flask_request.get_json(True)
+		if claim['uut_name'] not in globals.active_uuts:
+			return 'uut not found', 400
+		if claim['action'] == 'delete':
+			print(f"Deleting claim {claim['uut_name']}")
+			if claim['uut_name'] not in globals.claims:
+				return 'uut not claimed', 400
+			del globals.claims[claim['uut_name']]
+			db = sqlite3.connect('multimon_claims.db')
+			sql = f'DELETE FROM claims WHERE uut_name = "{claim["uut_name"]}"'
+			cursor = db.cursor()
+			cursor.execute(sql)
+			db.commit()
+			db.close()
+			return 'Deleted claim', 200
+		elif claim['action'] == 'claim':
+			print(f"Claiming {claim['uut_name']}")
+			for key in claim:
+				if not claim[key]:
+					return f'{key} invalid', 400
+				if key == claim[key].lower():
+					return f'{key} cannot equal {claim[key]}', 400
+			globals.claims[claim['uut_name']] = {'user':claim['user'],'test':claim['test']}
+			keys = 'uut_name, user, test'
+			values = f"'{claim['uut_name']}', '{claim['user']}', '{claim['test']}'"
+			db = sqlite3.connect('multimon_claims.db')
+			sql = f'INSERT OR REPLACE INTO claims ({keys}) VALUES ({values})'
+			cursor = db.cursor()
+			cursor.execute(sql)
+			db.commit()
+			db.close()
+			return 'Claimed uut', 200
+		return 'Bad payload', 400
 
 	@app.route("/hosts")
 	def return_hosts():
 		sql = f'SELECT "ip", "uut_name" FROM {globals.table_name} ORDER BY {globals.primary_key};'
-		buffer = ""
+		buffer = f'#hosts file generated by multimon on {datetime.now()}\n'
 		unpacked = sql_to_dict(sql)
 		for row in unpacked:
-			buffer += f"{row['uut_name']} {row['ip']}<br>"
-		return buffer
+			buffer += f"{row['uut_name']} {row['ip']}\n"
+		return buffer, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+	@app.route("/consoles")
+	def return_consoles():
+		buffer = f'#tty file generated by multimon on {datetime.now()}\n'
+		for uut, tty in sorted(globals.active_ttys.items()):
+			buffer += f'{uut} {tty}\n'
+		return buffer, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
+	@app.route("/kill", methods = ['POST'])
+	def kill_mulitmon():
+		shutdown_server()
+		return 'Server shutting down...'
+	def shutdown_server():
+		func = flask_request.environ.get('werkzeug.server.shutdown')
+		if func is None:
+			raise RuntimeError('Not running with the Werkzeug Server')
+		func()
 
 	logging.getLogger('werkzeug').disabled = True
-	app.run(host="0.0.0.0", port=globals.web_port)
+	app.run(host="0.0.0.0", port=globals.web_port, debug=False)
 
 def prRed(skk): print("\033[91m{}\033[00m" .format(skk))
 def prGreen(skk): print("\033[92m{}\033[00m" .format(skk))
