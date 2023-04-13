@@ -53,7 +53,7 @@
         <h3>Total: <span id="totalRows"></span></h3>
         <a id="footerHosts" target=”_blank”>hosts</a>
         <a id="footerConsoles" target=”_blank”>ttys</a>
-        <a id="footerKill" href="">kill</a>
+        <a id="footerKill">kill</a>
     </footer>
 </body>
 <style>
@@ -392,6 +392,8 @@ footer a{
 footer a:last-of-type{
     color: transparent;
     user-select: none;
+    cursor: pointer;
+    text-decoration: underline;
 }
 footer a:hover{
     color: rebeccapurple;
@@ -605,7 +607,6 @@ function kill_multimon(){
     console.log('killing self')
     let url = new URL(`${url_base}/kill`);
     send_request(url, 'POST', null, null);
-    location.reload()
 }
 const overlay = document.getElementById("overlayWrapper");
 const overlay_cover = document.getElementById("overlayCover");
