@@ -347,7 +347,9 @@ def thread_handler():
 	tty_monitor = threading.Thread(target=get_tty_connections)
 	tty_monitor.daemon = True
 	tty_monitor.start()
-	whitelist = ['acq2006_014']
+	whitelist = ['acq2106_130']
+	blacklist = ['acq2006_014','acq2006_015']
+	#blacklist = []
 	whitelist = []
 	s = connect_to_lighthouse()
 	expr = re.compile('([\w]+)[\.\w\-]*:5064')
@@ -361,6 +363,9 @@ def thread_handler():
 		for hostname in matches:
 			if whitelist:
 				if hostname not in whitelist:
+					continue
+			if blacklist:
+				if hostname in blacklist:
 					continue
 			if hostname in globals.active_uuts:
 				continue
