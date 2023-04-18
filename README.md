@@ -50,3 +50,14 @@ Nginx config:
         proxy_set_header X-Forwarded-Prefix /multimon;
       }
 ```
+Apache config:
+```
+      <Proxy /mulitmon>
+        Order deny,allow
+        Allow from all
+      </Proxy>
+      
+      ProxyPass /multimon http://localhost:5000
+      ProxyPassReverse /mulitmon http://localhost:5000
+
+```
