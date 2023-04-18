@@ -2,13 +2,14 @@
 <html>
 <head>
     <title>Multimon Portable</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body id="body">
     <div id="overlayBackground"></div>
     <div id="overlayWrapper">
         <div id="overlayCover"></div>
-        <div class="claim_modal">
+        <div class="modal claim_modal">
             <h3>Claim uut</h3>
             <div>
                 <span>Uut:</span>
@@ -29,6 +30,12 @@
             </div>
             <p id="claimResponse" class="claimResponse">...</p>
         </div>
+        <div class="modal settings_modal">
+            <h3>Multimon settings</h3>
+            <div id="settingsColumns">
+                <h4>Set columns</h4>
+            </div>
+        </div>
     </div>
     <header>
         <h1>ACQ400 UUT Status
@@ -37,12 +44,16 @@
         </h1>
         <div class="button_case">
             <div class="buttonInput">
-                <input type="checkbox" id="claimButton" class="hidden"/>
+                <input type="checkbox" id="claimButton" class="hidden" data-target="overlay_claim"/>
                 <label for="claimButton" class="button">Claim UUT</label>
             </div>
             <div class="buttonInput">
                 <input type="checkbox" id="pauseButton" class="hidden"/>
                 <label for="pauseButton" class="button">Live</label>
+            </div>
+            <div class="buttonInput">
+                <input type="checkbox" id="settingsButton" class="hidden" data-target="overlay_settings"/>
+                <label for="settingsButton" class="button">Settings</label>
             </div>
         </div>
     </header>
@@ -83,6 +94,7 @@ body {
 .hidden{
     display: none;
 }
+/*overlay*/
 #overlayBackground{
     position: absolute;
     left: 0;
@@ -93,7 +105,6 @@ body {
     font-size: 20px;
     color: red;
 }
-/*overlay*/
 #overlayWrapper{
     z-index:    900;
     top:        0;
@@ -109,7 +120,7 @@ body {
     width:      100%;
     height:     100%;
 }
-.claim_modal{
+.modal{
     position: absolute;
     top: 50%;
     left: 50%;
@@ -121,6 +132,13 @@ body {
     padding: 0px 10px 10px 10px;
     color: white;
     width: 300px;
+    display: none;
+}
+.overlay_claim .claim_modal{
+    display: block;
+}
+.overlay_settings .settings_modal{
+    display: block;
 }
 .claim_modal div{
     text-align: left;
@@ -171,6 +189,18 @@ body {
     display: block;
     margin: 0;
     padding: 15px 5px;
+}
+#settingsColumns h4{
+    text-align: left;
+    padding-left: 10px;
+}
+#settingsColumns div{
+    width: 48%;
+    display: inline-block;
+    text-align: left;
+}
+#settingsColumns label{
+    cursor: pointer;
 }
 /*header*/
 header{
@@ -229,6 +259,7 @@ header h1 span{
     display: block;
     text-decoration: none;
     color: black;
+    position: relative;
 }
 .button:hover{
     background-color:#dbe0e5;
@@ -329,12 +360,14 @@ table thead{
     width: 25px;
 }
 .delayed{
-    border: 1px solid red !important;
     -webkit-box-shadow: inset 0px 0px 0px 1px #f00;
             box-shadow: inset 0px 0px 0px 1px #f00;
     color: red;
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
+}
+.delayed, .delayed ~ td{
+    border: 1px solid red !important;
 }
 .tty{
     min-width: 70px;
@@ -415,13 +448,17 @@ var special_keys = {
     'delay' : add_conn_status,
 }
 
-var blacklisted_keys = ['ip', 'conn_type'];
+var blacklisted_keys = new Set(['ip', 'conn_type', 'temp', 'clk_set', 'clk_freq']);
 
 var active_uuts = [];
+
+var table_columns = [];
 
 const url_base = new URL(window.location.pathname, window.location.origin).href;
 
 const update_rate = 1000;
+
+
 
 function main(){
     if(!pause_button.checked && document.visibilityState != "hidden"){
@@ -465,6 +502,9 @@ function update_rows(status, data){
 
     header_keys = Object.keys(rows[0]);
     header = build_header(header_keys);
+    if(table_columns == 0){
+        make_settings_columns(header_keys);
+    }
     fragment.appendChild(header);
     new_body.id = "statusTable";
     for(const idx in rows){
@@ -474,6 +514,29 @@ function update_rows(status, data){
     state_table.replaceChildren(fragment);
     total_rows.textContent = rows.length;
     active_uuts = rows;
+}
+function make_settings_columns(header_keys){
+    table_columns = header_keys;
+    let fragment = new DocumentFragment();
+    for(const column of table_columns){
+        id = `setting_${column}`;
+        new_container = document.createElement('div');
+        new_check = document.createElement('input');
+        new_label= document.createElement('label');
+        new_check.type = 'checkbox';
+        new_check.id = id;
+        if(!is_blacklisted(column)){
+            new_check.checked = true;
+        }
+        new_check.addEventListener('click', handle_blacklist);
+        new_check.value = column;
+        new_label.setAttribute('for', id);
+        new_label.innerText = column;
+        new_container.appendChild(new_check);
+        new_container.appendChild(new_label);
+        fragment.appendChild(new_container);
+    }
+    settings_columns.appendChild(fragment);
 }
 
 function build_header(header_keys) {
@@ -512,7 +575,7 @@ function build_row(row_data){
 }
 
 function is_blacklisted(value){
-    return blacklisted_keys.includes(value);
+    return blacklisted_keys.has(value);
 }
 
 function is_special(value){
@@ -563,11 +626,11 @@ function add_commas(new_cell, key, row_data){
     return new_cell
 }
 function add_conn_status(new_cell, key, row_data){
-    value = row_data[key]
+    value = row_data[key];
     if(value > 0){
         new_cell.className += " delayed";
     }
-    return new_cell
+    return new_cell;
 }
 
 function toggle_live(){
@@ -589,6 +652,7 @@ function handle_claim(){
 }
 
 function toggle_overlay(){
+    overlay.className = this.dataset.target;
     overlay.style.display = overlay.style.display != 'block' ? 'block' : 'none';
 }
 
@@ -606,6 +670,13 @@ function refresh_claim_list(){
     claim_test_input.value = '';
 }
 
+function handle_blacklist(){
+    if(this.checked){
+        blacklisted_keys.delete(this.value);
+    } else {
+        blacklisted_keys.add(this.value);
+    }
+}
 function kill_multimon(){
     ans = prompt('Kill Mulitmon? y/n');
     console.log(ans)
@@ -622,6 +693,7 @@ const overlay_back = document.getElementById("overlayBackground");
 
 const pause_button = document.getElementById('pauseButton');
 const claim_button = document.getElementById('claimButton');
+const settings_button = document.getElementById('settingsButton');
 
 const state_table = document.getElementById('stateTable');
 const total_rows = document.getElementById('totalRows');
@@ -634,11 +706,16 @@ const claim_test_input = document.getElementById('claimTestInput');
 const claim_claim_button = document.getElementById('claimClaimButton');
 const claim_delete_button = document.getElementById('claimDeleteButton');
 const claim_reponse = document.getElementById('claimResponse');
+
+const settings_columns = document.getElementById('settingsColumns');
+
 const footer_kill = document.getElementById('footerKill');
+
 
 
 pause_button.addEventListener('click', toggle_live);
 claim_button.addEventListener('click', toggle_overlay);
+settings_button.addEventListener('click', toggle_overlay);
 claim_button.addEventListener('click', refresh_claim_list);
 overlay_cover.addEventListener('click', toggle_overlay);
 
@@ -646,7 +723,6 @@ claim_claim_button.addEventListener('click', handle_claim);
 claim_delete_button.addEventListener('click', handle_claim);
 
 footer_kill.addEventListener('click', kill_multimon);
-
 
 document.getElementById('footerHosts').href = url_base + '/hosts';
 document.getElementById('footerConsoles').href = url_base + '/consoles';
