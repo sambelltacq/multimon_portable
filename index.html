@@ -453,9 +453,13 @@ function update_rows(status, data){
         pause_button.labels[0].textContent = 'Live???';
         return
     }
+    rows = JSON.parse(data);
+    if(rows.length == 0){
+        console.info('No data');
+        return
+    }
     console.log("updating rows");
     overlay_back.innerText = ''
-    rows = JSON.parse(data);
     new_body = document.createElement('tbody');
     let fragment = new DocumentFragment();
 
