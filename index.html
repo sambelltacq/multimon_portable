@@ -475,11 +475,25 @@ const update_rate = 1000;
 
 
 function main(){
+    cookie = get_cookie('blacklisted_keys');
+    if(cookie){
+        blacklisted_keys = new Set(cookie.split(','));
+    }
+
+    document.getElementById('footerHosts').href = url_base + '/hosts';
+    document.getElementById('footerConsoles').href = url_base + '/consoles';
+    loop();
+}
+const get_cookie = (name) => (
+  document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
+)
+function loop(){
     if(!pause_button.checked && document.visibilityState != "hidden"){
         get_json();
     }
-    setTimeout(main, update_rate);
+    setTimeout(loop, update_rate);
 }
+
 
 function send_request(url, method, callback, payload = null){
     var xhr = new XMLHttpRequest();
@@ -542,6 +556,9 @@ function make_settings_columns(header_keys){
         if(!is_blacklisted(column)){
             new_check.checked = true;
         }
+        if(column == 'uut_name'){
+            new_check.disabled = true
+        }
         new_check.addEventListener('click', handle_blacklist);
         new_check.value = column;
         new_label.setAttribute('for', id);
@@ -596,7 +613,7 @@ function is_special(value){
     return value in special_keys;
 }
 function add_link(new_cell, key, value, row_data){
-    if(value == ''){
+    if(value == null){
         return new_cell
     }
     new_link = document.createElement('a');
@@ -704,6 +721,8 @@ function handle_blacklist(){
     } else {
         blacklisted_keys.add(this.value);
     }
+    blacklisted_str = Array.from(blacklisted_keys).join(',')
+    document.cookie = `blacklisted_keys=${blacklisted_str}`;
 }
 function kill_multimon(){
     ans = prompt('Kill Mulitmon? y/n');
@@ -751,9 +770,6 @@ claim_claim_button.addEventListener('click', handle_claim);
 claim_delete_button.addEventListener('click', handle_claim);
 
 footer_kill.addEventListener('click', kill_multimon);
-
-document.getElementById('footerHosts').href = url_base + '/hosts';
-document.getElementById('footerConsoles').href = url_base + '/consoles';
 
 main()
 </script>
