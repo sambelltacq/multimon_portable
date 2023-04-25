@@ -4,6 +4,7 @@
     <title>Multimon Portable</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="refresh" content="3600">
 </head>
 <body id="body">
     <div id="overlayBackground"></div>
@@ -383,6 +384,7 @@ table thead{
 }
 .cstate, .tstate{
     min-width: 80px;
+    max-width: 80px;
     overflow: hidden;
 }
 .firmware, .fpga{
@@ -392,6 +394,16 @@ table thead{
     white-space: nowrap;
     max-height: 31px;
 }
+.uptime{
+    white-space: nowrap;
+}
+.WARM{
+    background-color: #f0932b;
+}
+.HOT{
+    background-color: #eb4d4b;
+}
+/*state colors*/
 #IDLE{
     background-color: #ff8080;
 }
@@ -446,9 +458,11 @@ var special_keys = {
     'clk_set' : add_commas,
     'clk_freq' : add_commas,
     'delay' : add_conn_status,
+    'uptime' : add_units,
+    'temp'  : add_temp,
 }
 
-var blacklisted_keys = new Set(['ip', 'conn_type', 'temp', 'clk_set', 'clk_freq']);
+var blacklisted_keys = new Set(['ip', 'conn_type', 'clk_set', 'clk_freq']);
 
 var active_uuts = [];
 
@@ -567,7 +581,7 @@ function build_row(row_data){
         new_cell.textContent = value
         new_cell.className = key
         if(is_special(key)){
-            new_cell = special_keys[key](new_cell, key, row_data)
+            new_cell = special_keys[key](new_cell, key, value, row_data)
         }
         new_row.appendChild(new_cell);
     }
@@ -581,19 +595,19 @@ function is_blacklisted(value){
 function is_special(value){
     return value in special_keys;
 }
-function add_link(new_cell, key, row_data){
-    if(new_cell.textContent == ''){
+function add_link(new_cell, key, value, row_data){
+    if(value == ''){
         return new_cell
     }
     new_link = document.createElement('a');
-    new_link.href = 'http://' + row_data[key];
-    new_link.textContent = new_cell.textContent;
+    new_link.href = 'http://' + value;
+    new_link.textContent = value;
     new_cell.textContent = "";
     new_cell.classList.add('link_cell');
     new_cell.appendChild(new_link);
     return new_cell
 }
-function add_state_color(new_cell, key, row_data){
+function add_state_color(new_cell, key, value, row_data){
     var state_enum = {
         '0' : 'IDLE',
         '1' : 'ARM',
@@ -606,7 +620,6 @@ function add_state_color(new_cell, key, row_data){
         'RUN_PRE' : 'RUNPRE',
         'POST_PROCESS' : 'POSTPROC',
     }
-    value = row_data[key]
     new_cell.id = value
     if(value in state_enum){
         new_cell.textContent = state_enum[value]
@@ -618,19 +631,34 @@ function add_state_color(new_cell, key, row_data){
     }
     return new_cell
 }
-function add_commas(new_cell, key, row_data){
-    value = row_data[key]
+function add_commas(new_cell, key, value, row_data){
     if(value){
         new_cell.textContent = value.toLocaleString('en', {useGrouping:true})
     }
     return new_cell
 }
-function add_conn_status(new_cell, key, row_data){
-    value = row_data[key];
+function add_conn_status(new_cell, key, value, row_data){
     if(value > 0){
         new_cell.className += " delayed";
     }
     return new_cell;
+}
+function add_units(new_cell, key, value, row_data){
+    if(value > 3600){
+        new_cell.textContent = `${(value / 3600).toFixed(1)}h`;
+    } else{
+        new_cell.textContent = `${value}s`;
+    }
+    return new_cell;
+}
+
+function add_temp(new_cell, key, value, row_data){
+    if(value > 55){
+        new_cell.className += " HOT";
+    } else if(value > 40){
+        new_cell.className += " WARM";
+    }
+    return new_cell
 }
 
 function toggle_live(){
