@@ -332,12 +332,14 @@ table thead{
 .state_row td{
     border: 1px solid #324bcd;
     text-align: right;
-    padding: 8px 2px;
+    padding: 8px 5px;
     position: relative;
     height: 100%;
     overflow: hidden;
+    white-space: nowrap;
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
+
 }
 .state_row td a{
     text-decoration: none;
@@ -395,6 +397,10 @@ table thead{
     max-height: 31px;
 }
 .uptime{
+    white-space: nowrap;
+}
+.location {
+    width: 1%;
     white-space: nowrap;
 }
 .WARM{
@@ -477,6 +483,7 @@ const update_rate = 1000;
 function main(){
     cookie = get_cookie('blacklisted_keys');
     if(cookie){
+        console.log(`Loading cookie blacklisted_keys = ${cookie}`);
         blacklisted_keys = new Set(cookie.split(','));
     }
 

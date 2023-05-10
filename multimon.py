@@ -28,6 +28,8 @@ class globals:
 
 	tty_servers = []
 
+	locations = {}
+
 	active_ttys = {}
 
 	claims = {}
@@ -42,10 +44,13 @@ class globals:
 
 	primary_key = 'uut_name'
 
+	performance_mode = True #todo
+
 	table_schema = {
 		'delay'		: 'INTEGER',
 		'uut_name' 	: 'TEXT PRIMARY KEY',
 		'tty'		: 'TEXT',
+		'location' 	: 'TEXT',
 		'user'		: 'TEXT',
 		'test'		: 'TEXT',
 		'uptime'	: 'INTEGER',
@@ -189,6 +194,9 @@ class Uut_connector:
 	def check_tty(self):
 		if self.hostname in globals.active_ttys:
 			self.state['tty'] = globals.active_ttys[self.hostname]
+			if globals.active_ttys[self.hostname] in globals.locations:
+				self.state['location'] = globals.locations[globals.active_ttys[self.hostname]]
+
 
 	def create_record(self):
 		keys = ''
@@ -271,7 +279,7 @@ def main():
 
 def get_config_file():
 	config_file = 'config.json'
-	valid_keys = {'lighthouses','web_port','tty_servers'}
+	valid_keys = {'lighthouses', 'web_port', 'tty_servers', 'locations'}
 	if os.path.exists(config_file):
 		file = open(config_file, "r")
 		data = json.loads(file.read())

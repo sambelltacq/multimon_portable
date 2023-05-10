@@ -27,5 +27,15 @@
       "eigg",
       "wiay"
     ],
-    "web_port": 5000
+    "web_port": 5000,
+    "locations": {
+      "rpi-004" : "Bench 7",
+      "rpi-005" : "Long Term Test",
+      "rpi-006" : "Calibration",
+      "rpi-008" : "Bench 6",
+      "rpi-009" : "Build Andrew",
+      "rpi-011" : "Tower 2",
+      "rpi-013" : "Tower 1",
+      "rpi-014" : "Build Brian"
+    }
 }
