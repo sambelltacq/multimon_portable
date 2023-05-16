@@ -1,4 +1,4 @@
-# multimon_portable
+﻿# multimon_portable
 ## Web status monitor for a fleet of ACQ400 systems on LAN
 
 ### Typical Screenshot:
@@ -13,23 +13,32 @@ Prerequisites:
 * we assume there is a working DNS
 * Multimon uses EPICS beacons to detect new devices, however we wanted to avoid needing to install EPICS on the host, and also to make the appropriate firewall entry, instead:
 * Multimon needs to know the name of a "lighthouse" : a first ACQ400 system to get a TCP socket feed of all EPICS beacon data
-* For production, use redirection from a webserver on the same box (nginx example shown below)
-* for initial testing, it's quicket to use the embedded webserver and a local browser
-  * Add the lighthouse initial HOSTNAME in config.json
+* For production, use a reverse proxy web-server ( Nginx, Apache ) on the same box
+* For initial testing, it's quickest to use the embedded web-server and a local browser
+  * Add any or all uuts host-names to config.json as lighthouses
+  * Open firewall port:
+  ```
+  #On centos7
+  sudo firewall-cmd --zone=public --add-port=5000/tcp --permanent
+  sudo firewall-cmd --reload
+
+  #On Ubuntu
+  sudo ufw allow 8080/tcp
+  ```
   * then just run it:
   ```
   [peter@andros multimon_portable]$ ./multimon.py
   casw server established acq2006_015
   * Serving Flask app "multimon" (lazy loading)
   * Environment: production
-    WARNING: This is a development server. Do not use it in a production deployment.
+    WARNING: This is a development server. Do use it in a production deployment.
     Use a production WSGI server instead.
   *  Debug mode: off
   Adding acq2206_001
   Adding acq2106_387
   ...
   ```
-  * then connect a local web browser to localhost:5000/,
+  * then connect a local web browser to localhost:5000/ or hostname:5000/,
 
 
 
@@ -56,7 +65,7 @@ Apache config:
         Order deny,allow
         Allow from all
       </Proxy>
-      
+
       ProxyPass /multimon http://localhost:5000
       ProxyPassReverse /mulitmon http://localhost:5000
 
