@@ -1,0 +1,63 @@
+{
+    "lighthouses": [
+      "acq2006_015",
+      "acq2006_014"
+    ],
+    "tty_servers": [
+      "rpi-001",
+      "rpi-003",
+      "rpi-004",
+      "rpi-005",
+      "rpi-006",
+      "rpi-007",
+      "rpi-008",
+      "rpi-009",
+      "rpi-010",
+      "rpi-011",
+      "rpi-012",
+      "rpi-013",
+      "rpi-014"
+    ],
+    "port": 54321,
+    "whitelist": [],
+    "blacklist": [
+      "acq2006_014",
+      "acq2006_015"
+    ],
+    "topography": {
+      "rpi-004" : {
+        "name" : "Bench 7",
+        "pdu" : ["npower8"],
+        "pdu_num" : 4
+      },
+      "rpi-005" : {
+        "name" : "Long Term Test",
+        "pdu" : ["npower5"],
+        "pdu_num" : 4
+      },
+      "rpi-006" : {
+        "name" : "Calibration"
+      },
+      "rpi-008" : {
+        "name" : "Bench 6",
+        "pdu" : ["npower4"],
+        "pdu_num" : 4
+      },
+      "rpi-009" : {
+        "name" : "Build Andrew"
+      },
+      "rpi-011" : {
+        "name" : "Tower 2",
+        "pdu" : ["pdu2"],
+        "pdu_num" : 8
+      },
+      "rpi-013" : {
+        "name" : "Tower 1",
+        "pdu" : ["pdu1"],
+        "pdu_num" : 8
+      },
+      "rpi-014" : {
+        "name" : "Build Brian"
+      }
+    }
+}

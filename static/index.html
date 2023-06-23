@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Multimon Portable</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="refresh" content="3600">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="static/style.css?version=4">
+        <script defer src="static/script.js?version=4"></script>
+    </head>
+    <body>
+        <div id="overlay">
+            <div id="overlay_button"></div>
+            <div class="modal_box">
+                <h2 class="modal_title">TITLE</h2>
+                <div class="claim_box">
+                    <h3>Claim</h3>
+                    <div class="modal_input">
+                        <span>User</span>
+                        <input type="text" autocomplete="off" id="claim-input-user">
+                    </div>
+                    <div class="modal_input">
+                        <span>Test</span>
+                        <input type="text" autocomplete="off" id="claim-input-test">
+                    </div>
+                    <div class="modal_input">
+                        <span>PDU</span>
+                        <select id="claim-input-pdu"></select><select id="claim-input-pdu_num"></select>
+                    </div>
+                    <button id="claim-button-update">Update</button>
+                    <button id="claim-button-erase">Erase</button>
+                </div>
+                <div class="pdu_box">
+                    <h3>Control</h3>
+                    <button id="claim-button-on">On</button>
+                    <button id="claim-button-off">Off</button>
+                </div>
+                <div class="response" id="claim-response">...</div>
+            </div>
+        </div>
+        <div class="wrapper">
+            <header>
+                <h1>ACQ400 UUT Status
+                    <span>Multimon Portable</span>
+                </h1>
+            </header>
+            <main>
+                <table id="table">
+                    <thead id="tableHeader"></thead>
+                    <tbody></tbody>
+                </table>
+                <h4>Total: <span id="total_span">1</span></h4>
+            </main>
+            <footer>
+                <div>
+                    <a href="hosts">HOSTS</a>
+                    <a href="consoles">CONSOLES</a>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,294 @@
+html, body{
+    height: 100%;
+    width: 100%;
+}
+body{
+    font-family: "Courier New", Courier, monospace;
+    margin: 0;
+    text-align: center;
+}
+
+
+@font-face {
+    font-family: 'material_symbols';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialsymbolsoutlined/v121/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oDMzByHX9rA6RzaxHMPdY43zj-jCxv3fzvRNU22ZXGJpEpjC_1n-q_4MrImHCIJIZrDCvHOej.woff2) format('woff2');
+  }
+
+.row_button{
+    font-family: 'material_symbols';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 20px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+.icon-claim:before {
+    content: "\e745";
+}
+.icon-pdu:before {
+    content: "\f102";
+}
+td{
+    margin-top: 10px;
+}
+.delayed{
+    color: red;
+}
+
+.claim_modal {
+    border: 1px solid red;
+    display: inline-block;
+}
+.toggle_modal{
+    color: purple;
+    cursor: pointer;
+
+}
+.wrapper{
+    height: 100%;
+    display: inline-flex;
+    flex-direction: column;
+    margin: 0 auto;
+}
+header{
+    text-align: left;
+}
+header img{
+    height: 50px;
+}
+header h1{
+    display: inline-block;
+}
+header h1 span{
+    font-size: 18px;
+}
+main{
+    flex-grow: 1;
+    text-align: left;
+}
+footer{
+    padding: 10px;
+    text-align: left;
+}
+footer a{
+    color: blue;
+}
+
+
+
+
+
+
+
+.response{
+    background-color: black;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+}
+#claim .claim_box{
+    display: block;
+}
+#pdu .pdu_box{
+    display: block;
+}
+.claim_box{
+    display: none;
+}
+.pdu_box{
+    display: none;
+    text-align: center;
+}
+
+
+.link{
+    cursor: pointer;
+}
+.link:hover{
+    color: blue;
+}
+.test111{
+    border-color: blue;
+}
+
+.table_row{
+    background-color: #ecf0f1;
+}
+.table_row:nth-child(2n){
+    background-color: #b6d3dd;
+}
+.row_button, .power_modal{
+    cursor: pointer;
+}
+
+#var333{
+    background-color: red;
+}
+
+
+/*table styles*/
+#table{
+    border-collapse: collapse;
+    border-spacing: 30px;
+}
+#tableHeader th{
+    background-color: #324bcd;
+    color: #fff;
+    text-align: center;
+}
+.table_row{
+
+}
+.table_row td{
+    border-width: 0px 0px 0px 0px;
+    border-color: #16a085;
+    padding: 5px 5px;
+}
+/*modal styles*/
+#overlay{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    font-size: 20px;
+    display: none;
+}
+#overlay_button{
+    background-color: grey;
+    opacity: 0.8;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+.modal_box{
+    background-color: #fff;
+    border: 3px solid #324bcd;
+    display: inline-block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+        -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+    width: 300px;
+    padding: 5px;
+    background-color: #ecf0f1;
+}
+.modal_box button{
+    cursor: pointer;
+    padding: 10px;
+}
+.modal_box h3{
+    margin: 0;
+    text-align: center;
+}
+.modal_title{
+    text-align: center;
+    margin: 0;
+}
+
+.modal_input {
+    text-align: left;
+    padding: 2px 0px;
+}
+.modal_input select{
+    border-radius: 0;
+}
+.claim_box{
+    text-align: center;
+    padding: 5px;
+}
+
+/*column specific styles*/
+.table_row{
+    color: #2c3e50;
+}
+.table_row .row_button{
+    text-align: center;
+    padding: 5px;
+    margin: 0;
+    box-sizing: border-box;
+    background-color: #324bcd;
+    color: #fff;
+}
+.row_button:hover{
+    background-color: blue;
+    color: #f1c40f;
+}
+
+.link{
+    cursor: pointer;
+}
+.link:hover{
+    color: blue;
+}
+
+.firmware {
+    max-width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.cstate, .tstate{
+    background-color: grey;
+    width: 80px;
+    max-width: 80px;
+    overflow: hidden;
+}
+.IDLE{
+    background-color: #ff8080;
+}
+.ARM{
+    background-color: #ffc080;
+}
+.RUN{
+    background-color: #92fb8f;
+}
+.RUNPOST, .RUNPRE{
+    background-color: #39f834;
+}
+.CLEANUP{
+    background-color: #80ffff;
+}
+.WARM{
+    background-color: #f0932b;
+}
+.HOT{
+    background-color: #eb4d4b;
+}
+
+
+.TIMEOUT{
+    color: red;
+}
+.OFFLINE{
+    color: grey;
+}
+.OFFLINE .delay{
+    color: red;
+}
+
+
+
+
+@media only screen and (max-width: 1000px) {
+    .location, .firmware, .fpga, .temp, .ip, .shot{
+        display: none;
+    }
+}
+@media only screen and (max-width: 800px) {
+    .tty, .user, .test{
+        display: none;
+    }
+}
