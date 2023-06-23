@@ -18,7 +18,7 @@
       "rpi-013",
       "rpi-014"
     ],
-    "port": 54321,
+    "port": 5000,
     "whitelist": [],
     "blacklist": [
       "acq2006_014",
@@ -26,38 +26,17 @@
     ],
     "topography": {
       "rpi-004" : {
-        "name" : "Bench 7",
-        "pdu" : ["npower8"],
+        "name" : "Bench 4",
+        "pdu" : ["npower4"],
         "pdu_num" : 4
       },
       "rpi-005" : {
-        "name" : "Long Term Test",
+        "name" : "Bench 5",
         "pdu" : ["npower5"],
         "pdu_num" : 4
       },
       "rpi-006" : {
         "name" : "Calibration"
-      },
-      "rpi-008" : {
-        "name" : "Bench 6",
-        "pdu" : ["npower4"],
-        "pdu_num" : 4
-      },
-      "rpi-009" : {
-        "name" : "Build Andrew"
-      },
-      "rpi-011" : {
-        "name" : "Tower 2",
-        "pdu" : ["pdu2"],
-        "pdu_num" : 8
-      },
-      "rpi-013" : {
-        "name" : "Tower 1",
-        "pdu" : ["pdu1"],
-        "pdu_num" : 8
-      },
-      "rpi-014" : {
-        "name" : "Build Brian"
       }
     }
 }

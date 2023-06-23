@@ -68,11 +68,20 @@ class config:
 		filename = globals.config_file
 		if os.path.exists(filename):
 			print(f"[config] Loading {filename}")
-
 			with open(filename) as file:
 				data = json.loads(file.read())
 				for key in data:
 					setattr(globals, key, data[key])
+			config.trim()
+			return
+		prRed(f"Error: Cannot load config {filename}")
+		os._exit(1)
+
+	def trim():
+		if not globals.tty_servers:
+			globals.table_keys.remove('tty')
+			globals.table_keys.remove('location')
+			globals.table_keys.remove('pdu')
 
 class claim_handler:
 
@@ -86,8 +95,8 @@ class claim_handler:
 					globals.claims = data
 				except:
 					print('[claim_handler] Unable to load claims')
-			claim_handler.preload()
 
+		claim_handler.preload()
 
 	def save():
 		filename = globals.claims_file
@@ -114,6 +123,9 @@ class claim_handler:
 		globals.data[uut]['test'] = test
 		claim_handler.save()
 
+		if not globals.tty_servers:
+			return True, 'Updated'
+
 		if bool(pdu) != bool(pdu_num):
 			prRed('[claim_handler] Pdu claim invalid')
 			return False, 'Pdu claim invalid'
@@ -136,7 +148,8 @@ class claim_handler:
 	def erase(uut, **kwargs):
 		globals.data[uut]['user'] = None
 		globals.data[uut]['test'] = None
-		claim_handler.unclaim_pdu(uut)
+		if globals.tty_servers:
+			claim_handler.unclaim_pdu(uut)
 		del globals.claims[uut]
 		claim_handler.save()
 		return True, 'Erased'
@@ -171,11 +184,13 @@ class casw:
 			self.conn.close()
 			self.conn = None
 		for lighthouse in globals.lighthouses:
+			print('loop')
 			if self.is_online(lighthouse):
 				self.lighthouse = lighthouse
 				print(f"[casw] {lighthouse} is lighthouse")
 				return
-		exit('Error: Unable to aquire casw')
+		prRed('Error: Unable to aquire casw lighthouse')
+		os._exit(1)
 
 	def is_online(self, host):
 		s = socket.socket()
@@ -206,7 +221,8 @@ class casw:
 				except Exception as e:
 					print(e)
 					self.scan()
-			exit(f"Could not connect to casw server")
+			prRed('Error: Unable to aquire casw lighthouse')
+			os._exit(1)
 
 	def get(self):
 		self.make_socket()
@@ -419,14 +435,14 @@ class pdu_api:
 			return True, 'Success'
 
 		def handle(action, target):
-			if not globals.data[target]['pdu']:
-				return False, 'No pdu found'
 			try:
+				if not globals.data[target]['pdu']:
+					return False, 'No pdu found'
 				target, socket = globals.data[target]['pdu'].split('::')
 				return pdu_api.cmd(action, target, socket)
 			except:
 				pass
-			return False,'Error: ????'
+			return False,'Error: pdu invalid'
 
 class cache:
 	pass#cache state.json here and meta.json

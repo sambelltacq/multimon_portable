@@ -81,7 +81,6 @@ function process_json(status, data){
     if(status != 200){
         return
     }
-    console.log('processing json')
     rows = JSON.parse(data);
     if(Object.keys(active).length > Object.keys(rows).length){
         let dead_uuts = Object.keys(active).filter(x => Object.keys(rows).indexOf(x) === -1);
@@ -98,7 +97,6 @@ function process_json(status, data){
         active[uut_name].update(value);
         total++
     }
-    console.log(total)
     document.querySelector('#total_span').innerText = total;
 
 }
@@ -227,6 +225,9 @@ class Modal{
     }
     add_selects(uut_name){
         console.log('add_selects')
+        if(Object.keys(topography).length == 0){
+            return
+        }
         var location = topography[active[uut_name].state.tty.value]
         console.log(location)
 
@@ -291,7 +292,10 @@ class Modal{
             'action' : 'off',
             'target' : modal.node.uut_name.innerText
         }
-        confirm(`Confirm ${payload.target} shutdown`)
+        if(!confirm(`Confirm ${payload.target} shutdown`)){
+            console.log('canceling')
+            return
+        }
         modal.handle_endpoint(payload)
     }
     turn_on(){
@@ -323,9 +327,7 @@ function custom_delay(value, elem, key, row, data){
     }
     if(value == 'OFF'){
         row.elem.classList.add('OFFLINE')
-        console.log('eeeeeeeeeeeee')
     }
-    console.log(value)
     return value;
 }
 
@@ -344,8 +346,6 @@ function custom_host_link(value, elem, key, row, data){
     return value
 }
 function custom_state_colors(value, elem, key, row, data){
-    console.log('custom_state_colors');
-    console.log(key)
     elem.className = `${key} ${value}`;
     return value
 }
